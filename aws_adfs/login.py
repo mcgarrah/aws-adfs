@@ -235,6 +235,8 @@ def login(
     # Final URL
     #print(request_url)
     click.echo( u"""AWS Console URL for {}: {}""".format(config.profile, request_url) )
+    if sys.platform=='win32':
+        os.startfile(request_url)
 
     if stdout:
         _emit_json(aws_session_token)
