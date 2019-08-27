@@ -234,8 +234,9 @@ def login(
 
     # Final URL
     #print(request_url)
-    click.echo( u"""AWS Console URL for {}: {}""".format(config.profile, request_url) )
-    if sys.platform=='win32':
+    click.echo( u"""AWS Console URL for "{}": {}""".format(config.profile, request_url) )
+    # Default browser opens URL
+    if(sys.platform=="win32"):
         os.startfile(request_url)
 
     if stdout:
