@@ -26,6 +26,7 @@ install_requires = [
 
 if system() == 'Windows':
     install_requires.append('requests-negotiate-sspi>=0.3.4')
+    install_requires.append('python-certifi-win32>=1.3')
 
 version = versioneer.get_version()
 
