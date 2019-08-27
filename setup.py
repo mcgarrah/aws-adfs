@@ -42,8 +42,10 @@ setup(
         encoding='utf-8'
     ).read(),
     long_description_content_type="text/markdown",
-    url='https://github.com/venth/aws-adfs',
-    download_url='https://github.com/venth/aws-adfs/tarball/{}'.format(version),
+    #url='https://github.com/venth/aws-adfs',
+    #download_url='https://github.com/venth/aws-adfs/tarball/{}'.format(version),
+    url='https://github.com/mcgarrah/aws-adfs',
+    download_url='https://github.com/mcgarrah/aws-adfs/tarball/{}'.format(version),
     author='Venth',
     author_email='artur.krysiak.warszawa@gmail.com',
     maintainer='Venth',
