@@ -12,6 +12,7 @@ from . import authenticator
 from . import prepare
 from . import role_chooser
 
+# Windows only import
 try:
   from os import startfile
 except ImportError:
@@ -104,6 +105,16 @@ import requests, json, sys, urllib
     default=None,
     help='Whether or not to use Kerberos SSO authentication via SSPI, which may not work in some environments.',
 )
+@click.option(
+    '--print-console-url',
+    is_flag=True,
+    help='Print a preauthenticated AWS Console URL.',
+)
+@click.option(
+    '--run-console-url',
+    is_flag=True,
+    help='Execute the AWS Console URL in the default browser, which only works on Windows environments.',
+)
 def login(
         profile,
         region,
@@ -121,7 +132,9 @@ def login(
         role_arn,
         session_duration,
         assertfile,
-        sspi
+        sspi,
+        print_console_url,
+        run_console_url
 ):
     """
     Authenticates an user with active directory credentials
@@ -203,54 +216,60 @@ def login(
         DurationSeconds=int(config.session_duration),
     )
 
-    # Format resulting temporary credentials into JSON
-    url_credentials = {}
-    url_credentials['sessionId'] = aws_session_token.get('Credentials').get('AccessKeyId')
-    url_credentials['sessionKey'] = aws_session_token.get('Credentials').get('SecretAccessKey')
-    url_credentials['sessionToken'] = aws_session_token.get('Credentials').get('SessionToken')
-    json_string_with_temp_credentials = json.dumps(url_credentials)
+    if run_console_url or print_console_url:
 
-    # Make request to AWS federation endpoint to get sign-in token.
-    # Construct the parameter string with the sign-in action request,
-    # a 12-hour session duration, and the JSON document with temporary credentials
-    request_parameters = "?Action=getSigninToken"
-    request_parameters += "&SessionDuration=43200"
-    if sys.version_info[0] < 3:
-        def quote_plus_function(s):
-            return urllib.quote_plus(s)
-    else:
-        def quote_plus_function(s):
-            return urllib.parse.quote_plus(s)
-    request_parameters += "&Session=" + quote_plus_function(json_string_with_temp_credentials)
-    request_url = "https://signin.aws.amazon.com/federation" + request_parameters
-    r = requests.get(request_url)
-    # Returns a JSON document with a single element named SigninToken.
-    signin_token = json.loads(r.text)
+        # Format resulting temporary credentials into JSON
+        url_credentials = {}
+        url_credentials['sessionId'] = aws_session_token.get('Credentials').get('AccessKeyId')
+        url_credentials['sessionKey'] = aws_session_token.get('Credentials').get('SecretAccessKey')
+        url_credentials['sessionToken'] = aws_session_token.get('Credentials').get('SessionToken')
+        json_string_with_temp_credentials = json.dumps(url_credentials)
 
-    # Create URL where users can use the sign-in token to sign in to
-    # the console. This URL must be used within 15 minutes after the
-    # sign-in token was issued.
-    request_parameters = "?Action=login" 
-    request_parameters += "&Issuer=" + config.adfs_host
-    request_parameters += "&Destination=" + quote_plus_function("https://console.aws.amazon.com/")
-    request_parameters += "&SigninToken=" + signin_token["SigninToken"]
-    request_url = "https://signin.aws.amazon.com/federation" + request_parameters
+        # Make request to AWS federation endpoint to get sign-in token.
+        # Construct the parameter string with the sign-in action request,
+        # a 12-hour session duration, and the JSON document with temporary credentials
+        request_parameters = "?Action=getSigninToken"
+        request_parameters += "&SessionDuration=43200"
+        if sys.version_info[0] < 3:
+            def quote_plus_function(s):
+                return urllib.quote_plus(s)
+        else:
+            def quote_plus_function(s):
+                return urllib.parse.quote_plus(s)
+        request_parameters += "&Session=" + quote_plus_function(json_string_with_temp_credentials)
+        request_url = "https://signin.aws.amazon.com/federation" + request_parameters
+        r = requests.get(request_url)
+        # Returns a JSON document with a single element named SigninToken.
+        signin_token = json.loads(r.text)
 
-    # Final URL
-    #print(request_url)
-    click.echo( u"""AWS Console URL for "{}": {}""".format(config.profile, request_url) )
+        # Create URL where users can use the sign-in token to sign in to
+        # the console. This URL must be used within 15 minutes after the
+        # sign-in token was issued.
+        request_parameters = "?Action=login" 
+        request_parameters += "&Issuer=" + config.adfs_host
+        request_parameters += "&Destination=" + quote_plus_function("https://console.aws.amazon.com/")
+        request_parameters += "&SigninToken=" + signin_token["SigninToken"]
+        request_url = "https://signin.aws.amazon.com/federation" + request_parameters
+
     # Default browser opens URL
-    if(sys.platform=="win32"):
+    if(sys.platform=="win32") and run_console_url:
         startfile(request_url)
+    else:
+        click.echo(u"""Warning: Cannot run AWS Console URL on non-windows platform.""")
+
 
     if stdout:
         _emit_json(aws_session_token)
     elif printenv:
         _emit_summary(config, aws_session_duration)
         _print_environment_variables(aws_session_token,config)
+        if print_console_url:
+            _print_console_url(request_url)
     else:
         _store(config, aws_session_token)
         _emit_summary(config, aws_session_duration)
+        if print_console_url:
+            _print_console_url(request_url)
 
 
 def _bind_aws_session_to_chosen_profile(config):
@@ -268,6 +287,12 @@ def _emit_json(aws_session_token):
             aws_session_token['Credentials']['SessionToken']
         )
     )
+
+def _print_console_url(request_url):
+    click.echo(
+        u"""
+            * AWS Console URL                   : {}
+        """.format(request_url))
 
 def _print_environment_variables(aws_session_token,config):
     envcommand = "export"
