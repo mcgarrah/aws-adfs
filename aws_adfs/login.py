@@ -12,6 +12,7 @@ from . import authenticator
 from . import prepare
 from . import role_chooser
 
+from os import startfile
 import requests, json, sys, urllib
 
 @click.command()
