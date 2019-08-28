@@ -209,6 +209,10 @@ aws-adfs integrates with:
       --sspi / --no-sspi              Whether or not to use Kerberos SSO
                                       authentication via SSPI, which may not work
                                       in some environments.
+      --print-console-url             Print a preauthenticated AWS Console URL.
+      --run-console-url               Execute the AWS Console URL in the default
+                                      browser, which only works on Windows
+                                      environments.
       --help                          Show this message and exit.
     ```
     ```
