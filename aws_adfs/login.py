@@ -12,7 +12,10 @@ from . import authenticator
 from . import prepare
 from . import role_chooser
 
-from os import startfile
+try:
+  from os import startfile
+except ImportError:
+  pass
 import requests, json, sys, urllib
 
 @click.command()
@@ -238,7 +241,7 @@ def login(
     click.echo( u"""AWS Console URL for "{}": {}""".format(config.profile, request_url) )
     # Default browser opens URL
     if(sys.platform=="win32"):
-        os.startfile(request_url)
+        startfile(request_url)
 
     if stdout:
         _emit_json(aws_session_token)
