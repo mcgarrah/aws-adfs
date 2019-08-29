@@ -17,6 +17,8 @@ try:
   from os import startfile
 except ImportError:
   pass
+# todo: make sure these imports are in the setup.py and setup.cfg files
+# todo: check if we can limit the imports with "from urllib import quote..."
 import requests, json, sys, urllib
 
 @click.command()
@@ -216,6 +218,7 @@ def login(
         DurationSeconds=int(config.session_duration),
     )
 
+    # todo: extract below secton of code to underscore function
     if run_console_url or print_console_url:
 
         # Format resulting temporary credentials into JSON
@@ -245,14 +248,22 @@ def login(
         # Create URL where users can use the sign-in token to sign in to
         # the console. This URL must be used within 15 minutes after the
         # sign-in token was issued.
+        #
+        # &Issuer        the form-urlencoded URL for your internal sign-in page
+        # &Destination   the form-urlencoded URL to the desired AWS console page
+        # &SigninToken   the value of SigninToken received in the previous step 
+        #
         request_parameters = "?Action=login" 
-        request_parameters += "&Issuer=" + config.adfs_host
+        request_parameters += "&Issuer=" + quote_plus_function(config.adfs_host)
         request_parameters += "&Destination=" + quote_plus_function("https://console.aws.amazon.com/")
         request_parameters += "&SigninToken=" + signin_token["SigninToken"]
         request_url = "https://signin.aws.amazon.com/federation" + request_parameters
 
     # Default browser opens URL
     if(sys.platform=="win32") and run_console_url:
+        # todo: force logout
+        #startfile('https://console.aws.amazon.com/console/logout!doLogout')
+        #startfile('https://signin.aws.amazon.com/oauth?Action=logout&redirect_uri=aws.amazon.com')
         startfile(request_url)
     else:
         click.echo(u"""Warning: Cannot run AWS Console URL on non-windows platform.""")
