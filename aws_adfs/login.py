@@ -183,6 +183,9 @@ def login(
 
     if(role_arn is not None):
         config.role_arn = role_arn
+    # todo: break up AccountId and Role selection from the ARN strings. Prompt for Account then Role.
+    #       have a parameter for prompting for account/role like in yum prompts
+    #       make an option available for setting global default behaviors like SSPI, PROMPT, ect...
     principal_arn, config.role_arn = role_chooser.choose_role_to_assume(config, principal_roles)
     if principal_arn is None or config.role_arn is None:
         click.echo('This account does not have access to any roles', err=True)
@@ -259,6 +262,7 @@ def login(
         request_parameters += "&SigninToken=" + signin_token["SigninToken"]
         request_url = "https://signin.aws.amazon.com/federation" + request_parameters
 
+    # todo: fixed warning on WIN32 platform for ELSE below if no run param was set
     # Default browser opens URL
     if(sys.platform=="win32") and run_console_url:
         # todo: force logout
