@@ -23,7 +23,7 @@ import requests, json, sys, urllib
 
 @click.command()
 @click.option(
-    '--profile',
+    '-p', '--profile',
     default=lambda: environ.get('AWS_DEFAULT_PROFILE', 'default'),
     help='AWS cli profile that will be authenticated.\n'
          'After successful authentication just use:\n'
@@ -113,7 +113,7 @@ import requests, json, sys, urllib
     help='Print a preauthenticated AWS Console URL.',
 )
 @click.option(
-    '--run-console-url',
+    '-r', '--run-console-url',
     is_flag=True,
     help='Execute the AWS Console URL in the default browser, which only works on Windows environments.',
 )
