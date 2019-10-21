@@ -267,7 +267,7 @@ def login(
     if(sys.platform=="win32") and run_console_url:
         # todo: force logout
         #startfile('https://console.aws.amazon.com/console/logout!doLogout')
-        #startfile('https://signin.aws.amazon.com/oauth?Action=logout&redirect_uri=aws.amazon.com')
+        startfile('https://signin.aws.amazon.com/oauth?Action=logout&redirect_uri=aws.amazon.com')
         startfile(request_url)
     else:
         click.echo(u"""Warning: Cannot run AWS Console URL on non-windows platform.""")
