@@ -265,9 +265,13 @@ def login(
     # todo: fixed warning on WIN32 platform for ELSE below if no run param was set
     # Default browser opens URL
     if(sys.platform=="win32") and run_console_url:
-        # todo: force logout
-        #startfile('https://console.aws.amazon.com/console/logout!doLogout')
-        startfile('https://signin.aws.amazon.com/oauth?Action=logout&redirect_uri=aws.amazon.com')
+        # todo: force logout - two URL exist for doing this in console interface
+        #logout_url = 'https://signin.aws.amazon.com/oauth?Action=logout&redirect_uri=aws.amazon.com'
+        logout_url = 'https://console.aws.amazon.com/console/logout!doLogout'
+        # blocking logout before login required
+        from subprocess import call
+        call(['start', logout_url], shell=True)
+        # execute the login to AWS console
         startfile(request_url)
     else:
         click.echo(u"""Warning: Cannot run AWS Console URL on non-windows platform.""")
